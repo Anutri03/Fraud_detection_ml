@@ -1,0 +1,3 @@
+Step,Transaction Type,Amount,Old Balance (Origin),New Balance (Origin),Old Balance (Destination),New Balance (Destination),Prediction,timestamp
+4,PAYMENT,5000,2,2,2,2,,2025-06-04 01:46:24.380622
+2,PAYMENT,100,1000,900,0,0,"Error processing input: ufunc 'isnan' not supported for the input types, and the inputs could not be safely coerced to any supported types according to the casting rule ''safe''",2025-06-04 01:48:03.205691
