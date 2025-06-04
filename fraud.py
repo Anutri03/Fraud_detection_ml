@@ -409,30 +409,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Stats row
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown("""
-        <div class="stat-card">
-            <div class="stat-label">Transactions Analyzed</div>
-            <div class="stat-value">24,812</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-with col2:
-    st.markdown("""
-        <div class="stat-card">
-            <div class="stat-label">Fraud Detected</div>
-            <div class="stat-value">347</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-with col3:
-    st.markdown("""
-        <div class="stat-card">
-            <div class="stat-label">Accuracy Rate</div>
-            <div class="stat-value">98.7%</div>
-        </div>
-    """, unsafe_allow_html=True)
+st.markdown("""
+    <div class="stat-card">
+        <div class="stat-label">Accuracy Rate</div>
+        <div class="stat-value">98.7%</div>
+    </div>
+""", unsafe_allow_html=True)
 
 # Main layout
 col_left, col_right = st.columns([1.2, 1], gap="large")
@@ -572,7 +554,6 @@ if predict_btn or autofill_btn:
     st.markdown(f"""
         <div class="prediction-box {result_class}">
             <div class="prediction-title" style="color: {result_color};">{result_text}</div>
-            <div class="prediction-percent" style="color: {result_color};">{prob_display}</div>
             <div class="prediction-desc">
                 <strong>Risk Level:</strong> {risk_level}<br>
                 {recommendation}
