@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Set page config
+
 st.set_page_config(
     page_title="SecureScan - Fraud Detection",
     page_icon="🔍",
@@ -10,7 +10,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for dark theme
 st.markdown('''
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -347,7 +346,7 @@ st.markdown('''
     .section-title {
         font-size: 1.25rem;
         font-weight: 600;
-        color: var(--dark);
+        color: #fff;
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
@@ -525,7 +524,7 @@ if predict_btn or autofill_btn:
         row = examples[row_idx]
         type_, amount, oldbalanceOrg, newbalanceOrig, oldbalanceDest, newbalanceDest = row
     
-    # Simulated prediction results
+    # prediction results
     if type_ == "TRANSFER" and float(amount.replace(',', '')) > 4000:
         fraud_prob = 0.87
     elif type_ == "CASH_OUT" and float(newbalanceDest.replace(',', '')) == 0:
@@ -546,11 +545,11 @@ if predict_btn or autofill_btn:
         result_color = "#52b788"
         recommendation = "Recommendation: No action required"
     
-    # Format probability display
+    #  probability display
     prob_display = f"{fraud_prob*100:.1f}%"
     risk_level = "HIGH RISK" if fraud_prob > 0.5 else "LOW RISK"
     
-    # Create prediction display
+    #  prediction display
     st.markdown(f"""
         <div class="prediction-box {result_class}">
             <div class="prediction-title" style="color: {result_color};">{result_text}</div>
@@ -567,9 +566,6 @@ st.markdown("""
         <div style="font-weight: 500; margin-bottom: 0.5rem;">SecureScan Fraud Detection System</div>
         <div style="margin-bottom: 0.5rem;">
             <small>Using advanced machine learning to protect your transactions</small>
-        </div>
-        <div>
-            <small>v2.1.0 | Security Analytics Dashboard | © 2023 SecureScan</small>
         </div>
     </div>
 """, unsafe_allow_html=True)
