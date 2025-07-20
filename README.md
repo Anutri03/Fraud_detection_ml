@@ -13,15 +13,15 @@ SecureScan is a comprehensive machine learning project for detecting fraudulent 
 
 ## Demo
 
-![SecureScan UI Screenshot](#) <!-- Add a screenshot or GIF if available -->
+![SecureScan UI Screenshot](screenshot.png) <!-- Update with your actual screenshot filename if needed -->
 
 ## Getting Started
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/BIA_capstone.git
-cd BIA_capstone
+git clone https://github.com/Anutri03/Fraud_detection_ml.git
+cd Fraud_detection_ml
 ```
 
 ### 2. Install Dependencies
