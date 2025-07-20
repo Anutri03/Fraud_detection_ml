@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import numpy as np
 
 
 st.set_page_config(
@@ -9,6 +10,19 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="expanded"
 )
+
+@st.cache_resource
+def load_model():
+    try:
+        model = joblib.load('xgboost_fraud_model.pkl')
+        st.success(f"Model loaded successfully! Model type: {type(model).__name__} --> XGBoost")
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
+
+# Load model
+model = load_model()
 
 st.markdown('''
     <style>
@@ -399,7 +413,7 @@ st.markdown('''
     </style>
 ''', unsafe_allow_html=True)
 
-# Header with dark theme
+
 st.markdown("""
     <header>
         <h1>SecureScan 🔍</h1>
@@ -407,7 +421,7 @@ st.markdown("""
     </header>
 """, unsafe_allow_html=True)
 
-# Stats row
+
 st.markdown("""
     <div class="stat-card">
         <div class="stat-label">Accuracy Rate</div>
@@ -415,11 +429,11 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Main layout
+
 col_left, col_right = st.columns([1.2, 1], gap="large")
 
 with col_left:
-    # Form card
+
     st.markdown("""
         <div class="card">
             <div class="card-header">
@@ -427,42 +441,60 @@ with col_left:
             </div>
     """, unsafe_allow_html=True)
     
-    # Form inputs
+
     type_ = st.selectbox("Transaction Type", ["PAYMENT", "TRANSFER", "CASH_OUT", "CASH_IN", "DEBIT"], 
                         help="Select the type of transaction")
     st.markdown('<div class="info-text">CASH_OUT and TRANSFER transactions have higher fraud risk</div>', unsafe_allow_html=True)
     
     col1_1, col1_2 = st.columns(2)
     with col1_1:
-        amount = st.text_input("Amount (USD)", "1,250.00", 
+        amount = st.text_input("Amount (Rs)", "1,250.00", 
                               help="Transaction amount")
-        st.markdown('<div class="value-badge">$1,250.00</div>', unsafe_allow_html=True)
+        st.markdown('<div class="value-badge">Rs 1,250.00</div>', unsafe_allow_html=True)
     with col1_2:
         oldbalanceOrg = st.text_input("Sender Old Balance", "8,500.00", 
                                     help="Sender's balance before transaction")
-        st.markdown('<div class="value-badge">$8,500.00</div>', unsafe_allow_html=True)
+        st.markdown('<div class="value-badge">Rs 8,500.00</div>', unsafe_allow_html=True)
     
     col2_1, col2_2 = st.columns(2)
     with col2_1:
         newbalanceOrig = st.text_input("Sender New Balance", "7,250.00", 
                                      help="Sender's balance after transaction")
-        st.markdown('<div class="value-badge">$7,250.00</div>', unsafe_allow_html=True)
+        st.markdown('<div class="value-badge">Rs 7,250.00</div>', unsafe_allow_html=True)
     with col2_2:
         oldbalanceDest = st.text_input("Receiver Old Balance", "3,200.00", 
                                       help="Receiver's balance before transaction")
-        st.markdown('<div class="value-badge">$3,200.00</div>', unsafe_allow_html=True)
+        st.markdown('<div class="value-badge">Rs 3,200.00</div>', unsafe_allow_html=True)
     
     newbalanceDest = st.text_input("Receiver New Balance", "4,450.00", 
                                   help="Receiver's balance after transaction")
-    st.markdown('<div class="value-badge">$4,450.00</div>', unsafe_allow_html=True)
+    st.markdown('<div class="value-badge">Rs 4,450.00</div>', unsafe_allow_html=True)
+    
+
+    try:
+        old_org = float(oldbalanceOrg.replace(',', ''))
+        new_org = float(newbalanceOrig.replace(',', ''))
+        old_dest = float(oldbalanceDest.replace(',', ''))
+        new_dest = float(newbalanceDest.replace(',', ''))
+        
+        balance_diff_org = old_org - new_org
+        balance_diff_dest = new_dest - old_dest
+        
+        col_diff_1, col_diff_2 = st.columns(2)
+        with col_diff_1:
+            st.markdown(f'<div class="value-badge" style="background: rgba(239, 35, 60, 0.1); color: #ef233c;">Sender Deducted: Rs {balance_diff_org:,.2f}</div>', unsafe_allow_html=True)
+        with col_diff_2:
+            st.markdown(f'<div class="value-badge" style="background: rgba(82, 183, 136, 0.1); color: #52b788;">Receiver Gained: Rs {balance_diff_dest:,.2f}</div>', unsafe_allow_html=True)
+    except ValueError:
+        st.warning("Please enter valid numeric values for balance calculations")
     
     st.markdown("</div>", unsafe_allow_html=True)  # Close card
     
-    # Predict button
+
     predict_btn = st.button("🔍 Analyze Transaction", use_container_width=True, key="predict")
 
 with col_right:
-    # Examples card
+
     st.markdown("""
         <div class="card">
             <div class="card-header">
@@ -470,7 +502,7 @@ with col_right:
             </div>
     """, unsafe_allow_html=True)
     
-    # Example table
+
     examples = [
         ["PAYMENT", "1,200.00", "10,000.00", "8,800.00", "5,000.00", "6,200.00"],
         ["TRANSFER", "7,850.00", "8,000.00", "150.00", "0.00", "7,850.00"],
@@ -498,12 +530,12 @@ with col_right:
         </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("</div>", unsafe_allow_html=True)  # Close card
+    st.markdown("</div>", unsafe_allow_html=True) 
     
-    # Autofill section
+
     st.markdown('<div class="section-title"><i>🔄</i> Autofill Examples</div>', unsafe_allow_html=True)
     
-    # Wrap the selectbox and button in a container with a unique ID
+
     with st.container():
         st.markdown('<div id="autofill-example-select" style="width: 100%;">', unsafe_allow_html=True)
         row_idx = st.selectbox("Select an example to load:", 
@@ -514,7 +546,7 @@ with col_right:
         autofill_btn = st.button("Load Selected Example", use_container_width=True, key="autofill")
         st.markdown('</div>', unsafe_allow_html=True)
 
-# Prediction result
+
 st.markdown("""
     <div class="section-title" style="margin-top: 2rem;"><i>📊</i> Prediction Result</div>
 """, unsafe_allow_html=True)
@@ -524,15 +556,114 @@ if predict_btn or autofill_btn:
         row = examples[row_idx]
         type_, amount, oldbalanceOrg, newbalanceOrig, oldbalanceDest, newbalanceDest = row
     
-    # prediction results
-    if type_ == "TRANSFER" and float(amount.replace(',', '')) > 4000:
-        fraud_prob = 0.87
-    elif type_ == "CASH_OUT" and float(newbalanceDest.replace(',', '')) == 0:
-        fraud_prob = 0.76
-    elif float(amount.replace(',', '')) > 8000:
-        fraud_prob = 0.65
-    else:
-        fraud_prob = 0.12
+
+    try:
+ 
+        amount_val = float(amount.replace(',', ''))
+        oldbalanceOrg_val = float(oldbalanceOrg.replace(',', ''))
+        newbalanceOrig_val = float(newbalanceOrig.replace(',', ''))
+        oldbalanceDest_val = float(oldbalanceDest.replace(',', ''))
+        newbalanceDest_val = float(newbalanceDest.replace(',', ''))
+        
+
+        features = pd.DataFrame({
+            'type': [type_],
+            'amount': [amount_val],
+            'oldbalanceOrg': [oldbalanceOrg_val],
+            'newbalanceOrig': [newbalanceOrig_val],
+            'oldbalanceDest': [oldbalanceDest_val],
+            'newbalanceDest': [newbalanceDest_val]
+        })
+        
+
+        balance_diff_org = oldbalanceOrg_val - newbalanceOrig_val
+        balance_diff_dest = newbalanceDest_val - oldbalanceDest_val
+        
+
+        is_suspicious_cashout = (type_ == "CASH_OUT" and balance_diff_dest == 0 and oldbalanceDest_val > 0)
+        is_large_amount = amount_val > 10000
+        is_full_withdrawal = (type_ == "CASH_OUT" and newbalanceOrig_val < 1000)
+        is_zero_receiver = (oldbalanceDest_val == 0 and newbalanceDest_val == 0)
+        is_receiver_unchanged = (oldbalanceDest_val == newbalanceDest_val and type_ == "CASH_OUT" and oldbalanceDest_val > 0)
+        is_suspicious_transfer = (type_ == "TRANSFER" and balance_diff_dest == 0 and oldbalanceDest_val > 0)
+        is_amount_mismatch = (abs(balance_diff_org - amount_val) > 100)  
+        
+        
+        if model is not None:
+            
+            st.write("Features being passed to model:", features)
+            
+            
+            if hasattr(model, 'predict_proba'):
+                try:
+                    fraud_prob = model.predict_proba(features)[0][1]  
+                    
+                    
+                    if is_suspicious_cashout:
+                        fraud_prob = max(fraud_prob, 0.8) 
+                    if is_suspicious_transfer:
+                        fraud_prob = max(fraud_prob, 0.9)  
+                    if is_amount_mismatch:
+                        fraud_prob = max(fraud_prob, 0.7)  
+                    if is_full_withdrawal and amount_val > 5000:
+                        fraud_prob = max(fraud_prob, 0.6)  
+                        
+                except Exception as pred_error:
+                    st.error(f"Prediction error: {pred_error}")
+                  
+                    fraud_prob = model.predict(features)[0]
+                    if fraud_prob == 1:
+                        fraud_prob = 0.9
+                    else:
+                        fraud_prob = 0.1
+            else:
+                
+                fraud_prob = model.predict(features)[0]
+                if fraud_prob == 1:
+                    fraud_prob = 0.9  
+                else:
+                    fraud_prob = 0.1  
+        else:
+            
+            if type_ == "TRANSFER" and amount_val > 4000:
+                fraud_prob = 0.87
+            elif type_ == "CASH_OUT" and newbalanceDest_val == 0:
+                fraud_prob = 0.76
+            elif amount_val > 8000:
+                fraud_prob = 0.65
+            else:
+                fraud_prob = 0.12
+        
+        
+        st.write("**Fraud Indicators:**")
+        st.write(f"- Suspicious CASH_OUT (receiver had money but unchanged): {is_suspicious_cashout}")
+        st.write(f"- Suspicious TRANSFER (receiver unchanged): {is_suspicious_transfer}")
+        st.write(f"- Large amount (>10k): {is_large_amount}")
+        st.write(f"- Full withdrawal: {is_full_withdrawal}")
+        st.write(f"- Zero receiver (normal for CASH_OUT): {is_zero_receiver}")
+        st.write(f"- Amount mismatch: {is_amount_mismatch}")
+        st.write(f"- Sender deducted: Rs {balance_diff_org:,.2f}")
+        st.write(f"- Receiver gained: Rs {balance_diff_dest:,.2f}")
+        st.write(f"- Transaction amount: Rs {amount_val:,.2f}")
+        
+    except ValueError as e:
+        st.error("Please enter valid numeric values for all fields")
+        fraud_prob = 0.0
+    except Exception as e:
+        st.error(f"Error during prediction: {e}")
+        
+        try:
+            amount_val = float(amount.replace(',', ''))
+            if type_ == "TRANSFER" and amount_val > 4000:
+                fraud_prob = 0.87
+            elif type_ == "CASH_OUT":
+                fraud_prob = 0.76
+            elif amount_val > 8000:
+                fraud_prob = 0.65
+            else:
+                fraud_prob = 0.12
+        except:
+            fraud_prob = 0.0
     
     if fraud_prob > 0.5:
         result_text = "⚠️ High Fraud Risk Detected"
@@ -554,6 +685,7 @@ if predict_btn or autofill_btn:
         <div class="prediction-box {result_class}">
             <div class="prediction-title" style="color: {result_color};">{result_text}</div>
             <div class="prediction-desc">
+                <strong>Fraud Probability:</strong> {prob_display}<br>
                 <strong>Risk Level:</strong> {risk_level}<br>
                 {recommendation}
             </div>
@@ -568,4 +700,4 @@ st.markdown("""
             <small>Using advanced machine learning to protect your transactions</small>
         </div>
     </div>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)    
